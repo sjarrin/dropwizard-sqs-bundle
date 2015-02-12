@@ -13,11 +13,8 @@ public class SqsListenerHealthCheck extends HealthCheck {
 
     @Override
     protected Result check() throws Exception {
-        if (receiver.isHealthy()) {
-            return Result.healthy();
-        } else {
-            return Result.unhealthy("SQS Listener is not healthy for queue " + receiver.getQueueUrl());
-        }
+        //TODO
+        return Result.unhealthy("Not yet implemented");
     }
 
 }

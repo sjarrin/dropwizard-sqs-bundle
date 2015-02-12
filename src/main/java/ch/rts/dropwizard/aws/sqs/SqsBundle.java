@@ -2,8 +2,10 @@ package ch.rts.dropwizard.aws.sqs;
 
 import ch.rts.dropwizard.aws.sqs.config.SqsConfigurationHolder;
 import ch.rts.dropwizard.aws.sqs.exception.CannotCreateSenderException;
+import ch.rts.dropwizard.aws.sqs.health.SqsBundleHealthCheck;
 import ch.rts.dropwizard.aws.sqs.health.SqsListenerHealthCheck;
 import ch.rts.dropwizard.aws.sqs.managed.SqsReceiver;
+import ch.rts.dropwizard.aws.sqs.managed.SqsReceiverHandler;
 import ch.rts.dropwizard.aws.sqs.service.SqsSender;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -37,7 +39,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
     private ObjectMapper objectMapper;
 
     public SqsBundle() {
-
+        logger.debug("Test");
     }
 
     @Override
@@ -51,23 +53,24 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
 
         setSqsRegion();
 
-        for (String queueName : this.configuration.getSqsConfiguration().getQueueNames()) {
-            Optional<String> queueUrl = getUrlForQueue(queueName);
-            if (queueUrl.isPresent()) {
-                if (logger.isDebugEnabled()) {
-                    logger.debug("got url " + queueUrl + " for queue " + queueName);
-                }
-
-                SqsReceiver receiver = new SqsReceiver(sqs, queueUrl.get());
-
-                this.environment.healthChecks().register("SQS",
-                        new SqsListenerHealthCheck(receiver)
-                );
-
-            }
-        }
+//        for (String queueName : this.configuration.getSqsConfiguration().getQueueNames()) {
+//            Optional<String> queueUrl = getUrlForQueue(queueName);
+//            if (queueUrl.isPresent()) {
+//                if (logger.isDebugEnabled()) {
+//                    logger.debug("got url " + queueUrl + " for queue " + queueName);
+//                }
+//
+//                SqsReceiver receiver = new SqsReceiver(sqs, queueUrl.get());
+//
+//                this.environment.healthChecks().register("SQS",
+//                        new SqsListenerHealthCheck(receiver)
+//                );
+//
+//            }
+//        }
 
         environment.lifecycle().manage(this);
+        environment.healthChecks().register("SqsBundle", new SqsBundleHealthCheck());
     }
 
     public SqsSender createSender(String queueName) throws CannotCreateSenderException {
@@ -75,13 +78,37 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         if (queueUrl.isPresent()) {
             SqsSender sqsSender = new SqsSender(sqs, queueUrl.get(), objectMapper);
             return sqsSender;
-        }
-        else {
+        } else {
             if (logger.isWarnEnabled()) {
                 logger.warn("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
             }
             throw new CannotCreateSenderException("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
         }
+    }
+
+    public <T> void registerReceiver(String queueName, SqsReceiver<T> receiver) {
+        Optional<String> queueUrl = getUrlForQueue(queueName);
+        if (queueUrl.isPresent()) {
+            SqsReceiverHandler<T> handler = new SqsReceiverHandler<>(
+                    sqs,
+                    queueUrl.get(),
+                    receiver,
+                    objectMapper,
+                    (message, exception) -> {
+                        logger.error("Error processing received message - acknowledging it anyway");
+                        return true;
+                    }
+            );
+            internalRegisterReceiver(queueName, handler);
+        }
+        else {
+            logger.error("Cannot register receiver for queue name : " + queueName);
+        }
+    }
+
+    private <T> void internalRegisterReceiver(String queueName, SqsReceiverHandler<T> handler) {
+        environment.lifecycle().manage(handler);
+        environment.healthChecks().register("SQS receiver for " + queueName, handler.getHealthCheck());
     }
 
     private AmazonSQS getAmazonSQS() {
@@ -118,6 +145,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
 
     /**
      * Retrieves queue url for the given queue name. If the queue does not exist, tries to create it.
+     *
      * @param queueName the queue name to get url for
      * @return an optional String representing the queue url
      */
