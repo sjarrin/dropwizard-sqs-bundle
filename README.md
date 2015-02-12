@@ -2,6 +2,7 @@ Dropwizard SQS Bundle
 ==================================
 
 Dropwizard-SQS bundle is an Amazon SQS-dedicated bundle, designed to be simple to send and receive messages from Amazon SQS service.
+It is widely inspired from great [Morten Kjetland's ActiveMQ bundle](https://github.com/mbknor/dropwizard-activemq-bundle), thanks to him !
 
 Maven
 ----------------
