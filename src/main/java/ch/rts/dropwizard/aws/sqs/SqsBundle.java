@@ -2,8 +2,8 @@ package ch.rts.dropwizard.aws.sqs;
 
 import ch.rts.dropwizard.aws.sqs.config.SqsConfigurationHolder;
 import ch.rts.dropwizard.aws.sqs.exception.CannotCreateSenderException;
+import ch.rts.dropwizard.aws.sqs.exception.SqsBaseExceptionHandler;
 import ch.rts.dropwizard.aws.sqs.health.SqsBundleHealthCheck;
-import ch.rts.dropwizard.aws.sqs.health.SqsListenerHealthCheck;
 import ch.rts.dropwizard.aws.sqs.managed.SqsReceiver;
 import ch.rts.dropwizard.aws.sqs.managed.SqsReceiverHandler;
 import ch.rts.dropwizard.aws.sqs.service.SqsSender;
@@ -53,22 +53,6 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
 
         setSqsRegion();
 
-//        for (String queueName : this.configuration.getSqsConfiguration().getQueueNames()) {
-//            Optional<String> queueUrl = getUrlForQueue(queueName);
-//            if (queueUrl.isPresent()) {
-//                if (logger.isDebugEnabled()) {
-//                    logger.debug("got url " + queueUrl + " for queue " + queueName);
-//                }
-//
-//                SqsReceiver receiver = new SqsReceiver(sqs, queueUrl.get());
-//
-//                this.environment.healthChecks().register("SQS",
-//                        new SqsListenerHealthCheck(receiver)
-//                );
-//
-//            }
-//        }
-
         environment.lifecycle().manage(this);
         environment.healthChecks().register("SqsBundle", new SqsBundleHealthCheck());
     }
@@ -93,11 +77,26 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
                     sqs,
                     queueUrl.get(),
                     receiver,
-                    objectMapper,
                     (message, exception) -> {
                         logger.error("Error processing received message - acknowledging it anyway");
                         return true;
                     }
+            );
+            internalRegisterReceiver(queueName, handler);
+        }
+        else {
+            logger.error("Cannot register receiver for queue name : " + queueName);
+        }
+    }
+
+    public <T> void registerReceiver(String queueName, SqsReceiver<T> receiver, SqsBaseExceptionHandler exceptionHandler) {
+        Optional<String> queueUrl = getUrlForQueue(queueName);
+        if (queueUrl.isPresent()) {
+            SqsReceiverHandler<T> handler = new SqsReceiverHandler<>(
+                    sqs,
+                    queueUrl.get(),
+                    receiver,
+                    exceptionHandler
             );
             internalRegisterReceiver(queueName, handler);
         }

@@ -6,7 +6,6 @@ import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.codahale.metrics.health.HealthCheck;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.lifecycle.Managed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,16 +22,14 @@ public class SqsReceiverHandler<T> implements Managed {
     private AmazonSQS sqs;
     private String queueUrl;
     private SqsReceiver<T> receiver;
-    private ObjectMapper objectMapper;
     private SqsBaseExceptionHandler exceptionHandler;
 
     private AtomicBoolean isHealthy = new AtomicBoolean(false);
 
-    public SqsReceiverHandler(AmazonSQS sqs, String queueUrl, SqsReceiver<T> receiver, ObjectMapper objectMapper, SqsBaseExceptionHandler exceptionHandler) {
+    public SqsReceiverHandler(AmazonSQS sqs, String queueUrl, SqsReceiver<T> receiver, SqsBaseExceptionHandler exceptionHandler) {
         this.sqs = sqs;
         this.queueUrl = queueUrl;
         this.receiver = receiver;
-        this.objectMapper = objectMapper;
         this.exceptionHandler = exceptionHandler;
     }
 
@@ -48,7 +45,7 @@ public class SqsReceiverHandler<T> implements Managed {
                 while (!isInterrupted()) {
                     try {
                         ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
-                        List<Message> messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
+                        List<Message> messages = sqs.receiveMessage(receiveMessageRequest.withMessageAttributeNames("All")).getMessages();
 
                         for (Message message : messages) {
                             processMessage(message);
@@ -84,7 +81,11 @@ public class SqsReceiverHandler<T> implements Managed {
             logger.debug("Process message " + message);
         }
 
-        receiver.receive((T) message);
+        try {
+            receiver.receive((T) message);
+        } catch (Exception e) {
+            exceptionHandler.onException(message, e);
+        }
     }
 
     private void deleteMessage(Message message) {
