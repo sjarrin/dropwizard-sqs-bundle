@@ -47,7 +47,7 @@ public class SqsSender {
             json = objectMapper.writeValueAsString(object);
             send(json, attributes);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.error("Could not send message to SQS, cause is " + e.getMessage());
         }
     }
 

@@ -38,6 +38,7 @@ public class SqsReceiverHandler<T> implements Managed {
         receiverThread = new Thread() {
             @Override
             public void run() {
+                isHealthy.set(true);
 
                 if (logger.isInfoEnabled()) {
                     logger.info("Start listening to queue: " + queueUrl);
@@ -58,9 +59,11 @@ public class SqsReceiverHandler<T> implements Managed {
                         }
                     }
                 }
+
                 if (logger.isInfoEnabled()) {
                     logger.info("Listener stopped for queue " + queueUrl);
                 }
+                isHealthy.set(false);
             }
 
         };
@@ -73,7 +76,9 @@ public class SqsReceiverHandler<T> implements Managed {
         if (logger.isInfoEnabled()) {
             logger.info("Stop SQS receiver for queue " + queueUrl);
         }
-        this.receiverThread.interrupt();
+        if (this.receiverThread != null) {
+            this.receiverThread.interrupt();
+        }
     }
 
     private void processMessage(Message message) {

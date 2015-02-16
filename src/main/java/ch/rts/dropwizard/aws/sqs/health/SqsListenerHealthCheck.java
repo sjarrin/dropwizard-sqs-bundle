@@ -1,20 +1,19 @@
 package ch.rts.dropwizard.aws.sqs.health;
 
-import ch.rts.dropwizard.aws.sqs.managed.SqsReceiver;
+import ch.rts.dropwizard.aws.sqs.managed.SqsReceiverHandler;
 import com.codahale.metrics.health.HealthCheck;
 
 public class SqsListenerHealthCheck extends HealthCheck {
 
-    private SqsReceiver receiver;
+    private SqsReceiverHandler receiverHandler;
 
-    public SqsListenerHealthCheck(SqsReceiver receiver) {
-        this.receiver = receiver;
+    public SqsListenerHealthCheck(SqsReceiverHandler receiverHandler) {
+        this.receiverHandler = receiverHandler;
     }
 
     @Override
     protected Result check() throws Exception {
-        //TODO
-        return Result.unhealthy("Not yet implemented");
+        return receiverHandler.getHealthCheck().execute();
     }
 
 }

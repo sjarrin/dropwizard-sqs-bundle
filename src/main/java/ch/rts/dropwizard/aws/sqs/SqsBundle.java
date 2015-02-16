@@ -8,6 +8,7 @@ import ch.rts.dropwizard.aws.sqs.managed.SqsReceiver;
 import ch.rts.dropwizard.aws.sqs.managed.SqsReceiverHandler;
 import ch.rts.dropwizard.aws.sqs.service.SqsSender;
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
@@ -39,7 +40,6 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
     private ObjectMapper objectMapper;
 
     public SqsBundle() {
-        logger.debug("Test");
     }
 
     @Override
@@ -60,8 +60,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
     public SqsSender createSender(String queueName) throws CannotCreateSenderException {
         Optional<String> queueUrl = getUrlForQueue(queueName);
         if (queueUrl.isPresent()) {
-            SqsSender sqsSender = new SqsSender(sqs, queueUrl.get(), objectMapper);
-            return sqsSender;
+            return new SqsSender(sqs, queueUrl.get(), objectMapper);
         } else {
             if (logger.isWarnEnabled()) {
                 logger.warn("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
@@ -105,18 +104,18 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         }
     }
 
-    private <T> void internalRegisterReceiver(String queueName, SqsReceiverHandler<T> handler) {
+    <T> void internalRegisterReceiver(String queueName, SqsReceiverHandler<T> handler) {
         environment.lifecycle().manage(handler);
         environment.healthChecks().register("SQS receiver for " + queueName, handler.getHealthCheck());
     }
 
-    private AmazonSQS getAmazonSQS() {
+    AmazonSQS getAmazonSQS() {
         AWSCredentials credentials = getAwsCredentials();
 
         return new AmazonSQSClient(credentials);
     }
 
-    private AWSCredentials getAwsCredentials() throws AmazonClientException {
+    AWSCredentials getAwsCredentials() throws AmazonClientException {
         // The ProfileCredentialsProvider will return your [default]
         // credential profile by reading from the credentials file located at
         // (~/.aws/credentials).
@@ -133,7 +132,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         return credentials;
     }
 
-    private void setSqsRegion() {
+    void setSqsRegion() {
         String regionName = this.configuration.getSqsConfiguration().getRegion();
         Region region = RegionUtils.getRegion(regionName);
         if (logger.isDebugEnabled()) {
@@ -148,7 +147,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
      * @param queueName the queue name to get url for
      * @return an optional String representing the queue url
      */
-    private Optional<String> getUrlForQueue(String queueName) {
+    Optional<String> getUrlForQueue(String queueName) {
         Optional<String> queueUrl = Optional.empty();
         try {
             GetQueueUrlResult queueUrlResult = sqs.getQueueUrl(queueName);
@@ -160,7 +159,11 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
                 logger.info("Queue " + queueName + " does not exist, try to create it");
             }
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
-            queueUrl = Optional.of(sqs.createQueue(createQueueRequest).getQueueUrl());
+            try {
+                queueUrl = Optional.of(sqs.createQueue(createQueueRequest).getQueueUrl());
+            } catch (AmazonClientException e2) {
+                logger.info("Could not create queue " + queueName + ", bundle won't work");
+            }
         }
 
         return queueUrl;
