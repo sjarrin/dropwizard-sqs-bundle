@@ -8,7 +8,6 @@ import ch.rts.dropwizard.aws.sqs.managed.SqsReceiver;
 import ch.rts.dropwizard.aws.sqs.managed.SqsReceiverHandler;
 import ch.rts.dropwizard.aws.sqs.service.SqsSender;
 import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.regions.Region;
@@ -54,7 +53,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         setSqsRegion();
 
         environment.lifecycle().manage(this);
-        environment.healthChecks().register("SqsBundle", new SqsBundleHealthCheck());
+        environment.healthChecks().register("SqsBundle", new SqsBundleHealthCheck(sqs));
     }
 
     public SqsSender createSender(String queueName) throws CannotCreateSenderException {
