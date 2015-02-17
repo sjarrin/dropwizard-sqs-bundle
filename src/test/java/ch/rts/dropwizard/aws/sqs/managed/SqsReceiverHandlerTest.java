@@ -76,7 +76,7 @@ public class SqsReceiverHandlerTest {
     }
 
     @Test
-    public void shouldGetMessagesWithAttributes() throws Exception {
+    public void shouldGetMessages10per10WithAttributes() throws Exception {
         //GIVEN
         when(sqs.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(new ReceiveMessageResult());
 
@@ -85,7 +85,9 @@ public class SqsReceiverHandlerTest {
 
         //THEN
         Thread.sleep(100);
-        verify(sqs, atLeastOnce()).receiveMessage(new ReceiveMessageRequest(queueUrl).withMessageAttributeNames("All"));
+        ReceiveMessageRequest expected = new ReceiveMessageRequest(queueUrl).withMessageAttributeNames("All");
+        expected.setMaxNumberOfMessages(10);
+        verify(sqs, atLeastOnce()).receiveMessage(expected);
         verify(sqs, never()).receiveMessage(new ReceiveMessageRequest(queueUrl));
     }
 

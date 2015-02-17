@@ -46,6 +46,7 @@ public class SqsReceiverHandler<T> implements Managed {
                 while (!isInterrupted()) {
                     try {
                         ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
+                        receiveMessageRequest.setMaxNumberOfMessages(10);
                         List<Message> messages = sqs.receiveMessage(receiveMessageRequest.withMessageAttributeNames("All")).getMessages();
 
                         for (Message message : messages) {
