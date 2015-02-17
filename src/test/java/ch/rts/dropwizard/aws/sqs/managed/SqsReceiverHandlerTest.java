@@ -57,7 +57,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.start();
 
         //THEN
-        Thread.sleep(300);
+        Thread.sleep(100);
         assertThat(receiverHandler.isHealthy()).isTrue();
     }
 
@@ -71,7 +71,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.stop();
 
         //THEN
-        Thread.sleep(300);
+        Thread.sleep(100);
         assertThat(receiverHandler.isHealthy()).isFalse();
     }
 
@@ -84,7 +84,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.start();
 
         //THEN
-        Thread.sleep(300);
+        Thread.sleep(100);
         verify(sqs, atLeastOnce()).receiveMessage(new ReceiveMessageRequest(queueUrl).withMessageAttributeNames("All"));
         verify(sqs, never()).receiveMessage(new ReceiveMessageRequest(queueUrl));
     }
@@ -106,7 +106,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.start();
 
         //THEN
-        Thread.sleep(300);
+        Thread.sleep(100);
         verify(receiver, times(2)).receive(any());
         verify(receiver, times(1)).receive(message1);
         verify(receiver, times(1)).receive(message2);
@@ -131,7 +131,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.start();
 
         //THEN
-        Thread.sleep(300);
+        Thread.sleep(100);
         verify(sqs, atLeastOnce()).deleteMessage(new DeleteMessageRequest(queueUrl, "asdfgh"));
     }
 

@@ -119,6 +119,11 @@ public class SqsBundleTest {
     @Test
     public void shouldRegisterHealthCheck() throws Exception {
         //GIVEN
+        AmazonSQS sqs = mock(AmazonSQS.class);
+
+        SqsBundle spiedBundle = spy(bundle);
+        doReturn(sqs).when(spiedBundle).getAmazonSQS();
+
         LifecycleEnvironment lifecycle = mock(LifecycleEnvironment.class);
         doNothing().when(lifecycle).manage((Managed) anyObject());
         when(environment.lifecycle()).thenReturn(lifecycle);
@@ -128,7 +133,7 @@ public class SqsBundleTest {
         when(environment.healthChecks()).thenReturn(healthChecks);
 
         //WHEN
-        bundle.run(configurationHolder, environment);
+        spiedBundle.run(configurationHolder, environment);
 
         //THEN
         verify(healthChecks, times(1)).register(eq("SqsBundle"), any(SqsBundleHealthCheck.class));
@@ -170,7 +175,6 @@ public class SqsBundleTest {
     public void shouldCorrectlyRegisterReceiver() throws Exception {
         //GIVEN
         AmazonSQS sqs = mock(AmazonSQS.class);
-        field("sqs").ofType(AmazonSQS.class).in(bundle).set(sqs);
 
         String queueUrl = "https://eu-central-1/queue.amazonaws.com/123456/test-queue";
         when(sqs.getQueueUrl("test-queue")).thenReturn(new GetQueueUrlResult()
@@ -185,6 +189,8 @@ public class SqsBundleTest {
         when(environment.healthChecks()).thenReturn(healthChecks);
 
         SqsBundle spiedBundle = spy(bundle);
+        doReturn(sqs).when(spiedBundle).getAmazonSQS();
+
         spiedBundle.run(configurationHolder, environment);
 
         //WHEN
