@@ -4,7 +4,7 @@
 
     <groupId>ch.rts</groupId>
     <artifactId>dropwizard-sqs</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <name>Dropwizard SQS bundle</name>
     <description>This is a bundle that integrates Amazon SQS service into dopwizard.</description>
     <url>https://github.com/sjarrin/dropwizard-sqs-bundle</url>
@@ -107,7 +107,7 @@
 
     <profiles>
         <profile>
-            <id>release-sign-artifacts</id>
+            <id>release</id>
             <activation>
                 <property>
                     <name>performRelease</name>
