@@ -98,8 +98,8 @@ public class SqsReceiverHandler<T> implements Managed {
         if (logger.isDebugEnabled()) {
             logger.debug("Delete message " + message);
         }
-        String messageRecieptHandle = message.getReceiptHandle();
-        sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageRecieptHandle));
+        String messageReceiptHandle = message.getReceiptHandle();
+        sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageReceiptHandle));
     }
 
     public boolean isHealthy() {

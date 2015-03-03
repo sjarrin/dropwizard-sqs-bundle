@@ -31,14 +31,14 @@ public class SqsSender {
         final String json;
         try {
             json = objectMapper.writeValueAsString(object);
-            send(json, new HashMap<String, MessageAttributeValue>());
+            send(json, new HashMap<>());
         } catch (JsonProcessingException e) {
-            logger.error("Could not send message to SQS, cause is " + e.getMessage());
+            logger.error("Could not send message to SQS, cause is " + e.getMessage(),e);
         }
     }
 
     public void send(String body) {
-        send(body, new HashMap<String, MessageAttributeValue>());
+        send(body, new HashMap<>());
     }
 
     public void send(Object object, Map<String, MessageAttributeValue> attributes) {
@@ -47,7 +47,7 @@ public class SqsSender {
             json = objectMapper.writeValueAsString(object);
             send(json, attributes);
         } catch (JsonProcessingException e) {
-            logger.error("Could not send message to SQS, cause is " + e.getMessage());
+            logger.error("Could not send message to SQS, cause is " + e.getMessage(),e);
         }
     }
 
