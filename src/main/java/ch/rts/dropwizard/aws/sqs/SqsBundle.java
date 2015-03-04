@@ -29,7 +29,7 @@ import java.util.Optional;
 
 public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Managed {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger LOGGER = LoggerFactory.getLogger(SqsBundle.class);
 
     private SqsConfigurationHolder configuration;
     private Environment environment;
@@ -61,8 +61,8 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         if (queueUrl.isPresent()) {
             return new SqsSender(sqs, queueUrl.get(), objectMapper);
         } else {
-            if (logger.isWarnEnabled()) {
-                logger.warn("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
+            if (LOGGER.isWarnEnabled()) {
+                LOGGER.warn("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
             }
             throw new CannotCreateSenderException("Could not create sender for queue name " + queueName + ", no messages will be sent for this queue");
         }
@@ -76,14 +76,14 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
                     queueUrl.get(),
                     receiver,
                     (message, exception) -> {
-                        logger.error("Error processing received message - acknowledging it anyway");
+                        LOGGER.error("Error processing received message - acknowledging it anyway");
                         return true;
                     }
             );
             internalRegisterReceiver(queueName, handler);
         }
         else {
-            logger.error("Cannot register receiver for queue name : " + queueName);
+            LOGGER.error("Cannot register receiver for queue name : " + queueName);
         }
     }
 
@@ -99,7 +99,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
             internalRegisterReceiver(queueName, handler);
         }
         else {
-            logger.error("Cannot register receiver for queue name : " + queueName);
+            LOGGER.error("Cannot register receiver for queue name : " + queueName);
         }
     }
 
@@ -134,8 +134,8 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
     void setSqsRegion() {
         String regionName = this.configuration.getSqsConfiguration().getRegion();
         Region region = RegionUtils.getRegion(regionName);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Setting SQS region to " + region.getName());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Setting SQS region to " + region.getName());
         }
         sqs.setRegion(region);
     }
@@ -154,15 +154,15 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
                 queueUrl = Optional.of(queueUrlResult.getQueueUrl());
             }
         } catch (QueueDoesNotExistException e) {
-            if (logger.isInfoEnabled()) {
-                logger.info("Queue " + queueName + " does not exist, try to create it",e);
+            if (LOGGER.isInfoEnabled()) {
+                LOGGER.info("Queue " + queueName + " does not exist, try to create it",e);
             }
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             try {
                 queueUrl = Optional.of(sqs.createQueue(createQueueRequest).getQueueUrl());
             } catch (AmazonClientException e2) {
-                logger.error(e2.getMessage(),e);
-                logger.info("Could not create queue " + queueName + ", bundle won't work");
+                LOGGER.error(e2.getMessage(), e);
+                LOGGER.info("Could not create queue " + queueName + ", bundle won't work");
             }
         }
 
@@ -176,15 +176,15 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
 
     @Override
     public void start() throws Exception {
-        if (logger.isInfoEnabled()) {
-            logger.info("Starting SQS client");
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Starting SQS client");
         }
     }
 
     @Override
     public void stop() throws Exception {
-        if (logger.isInfoEnabled()) {
-            logger.info("Stopping SQS client");
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Stopping SQS client");
         }
     }
 

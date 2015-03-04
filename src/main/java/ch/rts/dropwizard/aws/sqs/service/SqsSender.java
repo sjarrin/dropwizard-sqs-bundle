@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class SqsSender {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger LOGGER = LoggerFactory.getLogger(SqsSender.class);
 
     private AmazonSQS sqs;
 
@@ -33,7 +33,7 @@ public class SqsSender {
             json = objectMapper.writeValueAsString(object);
             send(json, new HashMap<>());
         } catch (JsonProcessingException e) {
-            logger.error("Could not send message to SQS, cause is " + e.getMessage(),e);
+            LOGGER.error("Could not send message to SQS, cause is " + e.getMessage(), e);
         }
     }
 
@@ -47,7 +47,7 @@ public class SqsSender {
             json = objectMapper.writeValueAsString(object);
             send(json, attributes);
         } catch (JsonProcessingException e) {
-            logger.error("Could not send message to SQS, cause is " + e.getMessage(),e);
+            LOGGER.error("Could not send message to SQS, cause is " + e.getMessage(), e);
         }
     }
 

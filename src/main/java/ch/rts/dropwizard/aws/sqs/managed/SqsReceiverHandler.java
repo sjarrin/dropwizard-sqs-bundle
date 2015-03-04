@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SqsReceiverHandler<T> implements Managed {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger LOGGER = LoggerFactory.getLogger(SqsReceiverHandler.class);
 
     private Thread receiverThread;
 
@@ -40,8 +40,8 @@ public class SqsReceiverHandler<T> implements Managed {
             public void run() {
                 isHealthy.set(true);
 
-                if (logger.isInfoEnabled()) {
-                    logger.info("Start listening to queue: " + queueUrl);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Start listening to queue: " + queueUrl);
                 }
                 while (!isInterrupted()) {
                     try {
@@ -55,14 +55,14 @@ public class SqsReceiverHandler<T> implements Managed {
                         }
 
                     } catch (Exception e) {
-                        if (logger.isInfoEnabled()) {
-                            logger.info("An error occurred while listening to queue " + queueUrl, e);
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info("An error occurred while listening to queue " + queueUrl, e);
                         }
                     }
                 }
 
-                if (logger.isInfoEnabled()) {
-                    logger.info("Listener stopped for queue " + queueUrl);
+                if (LOGGER.isInfoEnabled()) {
+                    LOGGER.info("Listener stopped for queue " + queueUrl);
                 }
                 isHealthy.set(false);
             }
@@ -74,8 +74,8 @@ public class SqsReceiverHandler<T> implements Managed {
 
     @Override
     public void stop() throws Exception {
-        if (logger.isInfoEnabled()) {
-            logger.info("Stop SQS receiver for queue " + queueUrl);
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Stop SQS receiver for queue " + queueUrl);
         }
         if (this.receiverThread != null) {
             this.receiverThread.interrupt();
@@ -83,8 +83,8 @@ public class SqsReceiverHandler<T> implements Managed {
     }
 
     private void processMessage(Message message) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Process message " + message);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Process message " + message);
         }
 
         try {
@@ -95,8 +95,8 @@ public class SqsReceiverHandler<T> implements Managed {
     }
 
     private void deleteMessage(Message message) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("Delete message " + message);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Delete message " + message);
         }
         String messageReceiptHandle = message.getReceiptHandle();
         sqs.deleteMessage(new DeleteMessageRequest(queueUrl, messageReceiptHandle));

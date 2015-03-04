@@ -11,7 +11,7 @@ public class SqsBundleHealthCheck extends HealthCheck {
 
     private AmazonSQS sqs;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final static Logger LOGGER = LoggerFactory.getLogger(SqsBundleHealthCheck.class);
 
     public SqsBundleHealthCheck(AmazonSQS sqs) {
         this.sqs = sqs;
@@ -28,7 +28,7 @@ public class SqsBundleHealthCheck extends HealthCheck {
                 return Result.unhealthy("Could not fetch queues list from AWS");
             }
         } catch (AmazonClientException e) {
-            logger.error(e.getMessage(),e);
+            LOGGER.error(e.getMessage(),e);
             return Result.unhealthy("Could not reach AWS to list queues");
         }
 
