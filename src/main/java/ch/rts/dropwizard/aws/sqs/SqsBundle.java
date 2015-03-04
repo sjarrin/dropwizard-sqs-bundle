@@ -114,7 +114,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
         return new AmazonSQSClient(credentials);
     }
 
-    AWSCredentials getAwsCredentials() throws AmazonClientException {
+    AWSCredentials getAwsCredentials() {
         // The ProfileCredentialsProvider will return your [default]
         // credential profile by reading from the credentials file located at
         // (~/.aws/credentials).
@@ -155,12 +155,13 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
             }
         } catch (QueueDoesNotExistException e) {
             if (logger.isInfoEnabled()) {
-                logger.info("Queue " + queueName + " does not exist, try to create it");
+                logger.info("Queue " + queueName + " does not exist, try to create it",e);
             }
             CreateQueueRequest createQueueRequest = new CreateQueueRequest(queueName);
             try {
                 queueUrl = Optional.of(sqs.createQueue(createQueueRequest).getQueueUrl());
             } catch (AmazonClientException e2) {
+                logger.error(e2.getMessage(),e);
                 logger.info("Could not create queue " + queueName + ", bundle won't work");
             }
         }
@@ -170,6 +171,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
 
     @Override
     public void initialize(Bootstrap<?> bootstrap) {
+        // mandatory override not used here
     }
 
     @Override
