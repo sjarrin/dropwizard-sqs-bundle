@@ -161,8 +161,7 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
             try {
                 queueUrl = Optional.of(sqs.createQueue(createQueueRequest).getQueueUrl());
             } catch (AmazonClientException e2) {
-                LOGGER.error(e2.getMessage(), e);
-                LOGGER.info("Could not create queue " + queueName + ", bundle won't work");
+                LOGGER.error("Could not create queue " + queueName + ", bundle won't work",e2);
             }
         }
 
