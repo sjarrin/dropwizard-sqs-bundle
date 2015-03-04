@@ -29,7 +29,7 @@ import java.util.Optional;
 
 public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Managed {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(SqsBundle.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqsBundle.class);
 
     private SqsConfigurationHolder configuration;
     private Environment environment;

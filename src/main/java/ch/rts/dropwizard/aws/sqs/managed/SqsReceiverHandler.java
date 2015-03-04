@@ -15,7 +15,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SqsReceiverHandler<T> implements Managed {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(SqsReceiverHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqsReceiverHandler.class);
 
     private Thread receiverThread;
 

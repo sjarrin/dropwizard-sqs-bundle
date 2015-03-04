@@ -11,7 +11,7 @@ public class SqsBundleHealthCheck extends HealthCheck {
 
     private AmazonSQS sqs;
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(SqsBundleHealthCheck.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqsBundleHealthCheck.class);
 
     public SqsBundleHealthCheck(AmazonSQS sqs) {
         this.sqs = sqs;

@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class SqsSender {
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(SqsSender.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SqsSender.class);
 
     private AmazonSQS sqs;
 
