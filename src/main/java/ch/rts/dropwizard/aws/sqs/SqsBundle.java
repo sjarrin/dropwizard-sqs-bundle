@@ -16,6 +16,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.CreateQueueRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.dropwizard.ConfiguredBundle;
@@ -75,9 +76,12 @@ public class SqsBundle implements ConfiguredBundle<SqsConfigurationHolder>, Mana
                     sqs,
                     queueUrl.get(),
                     receiver,
-                    (message, exception) -> {
-                        LOGGER.error("Error processing received message - acknowledging it anyway");
-                        return true;
+                    new SqsBaseExceptionHandler() { // not replaced with lambda because jacoco fails with lambdas
+                        @Override
+                        public boolean onException(Message message, Exception exception) {
+                            LOGGER.error("Error processing received message - acknowledging it anyway");
+                            return true;
+                        }
                     }
             );
             internalRegisterReceiver(queueName, handler);
