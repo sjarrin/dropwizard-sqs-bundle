@@ -108,7 +108,7 @@ public class SqsReceiverHandlerTest {
         receiverHandler.start();
 
         //THEN
-        Thread.sleep(100);
+        Thread.sleep(1000);
         verify(receiver, times(2)).receive(any());
         verify(receiver, times(1)).receive(message1);
         verify(receiver, times(1)).receive(message2);
