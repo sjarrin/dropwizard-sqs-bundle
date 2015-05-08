@@ -127,14 +127,21 @@ public class SqsReceiverHandlerTest {
                 .withBody("Another sample test message")
                 .withReceiptHandle("asdfgh");
         receiveMessageResult.setMessages(Lists.newArrayList(message1, message2));
-        when(sqs.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(receiveMessageResult);
+
+        // simulate at the 2nd call that the message has been deleted on SQS side
+        when(sqs.receiveMessage((ReceiveMessageRequest) anyObject()))
+                .thenReturn(receiveMessageResult)
+                .thenReturn(new ReceiveMessageResult());
+
+        DeleteMessageRequest deleteMessageRequest = new DeleteMessageRequest(queueUrl, "asdfgh");
+        doNothing().when(sqs).deleteMessage(deleteMessageRequest);
 
         //WHEN
         receiverHandler.start();
 
         //THEN
         Thread.sleep(100);
-        verify(sqs, atLeastOnce()).deleteMessage(new DeleteMessageRequest(queueUrl, "asdfgh"));
+        verify(sqs, times(1)).deleteMessage(deleteMessageRequest);
     }
 
 }
